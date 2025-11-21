@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+import { useNavigation } from '@react-navigation/native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -18,6 +19,7 @@ import Animated, {
   withTiming,
   FadeInDown,
 } from 'react-native-reanimated';
+import { useCourse } from '../context/CourseContext';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -81,6 +83,8 @@ const SemesterButton = ({ semester, index, onPress }) => {
 };
 
 export default function HomeScreen() {
+  const { selectedCourse } = useCourse();
+  const navigation = useNavigation();
   const headerOpacity = useSharedValue(0);
   const headerTranslateY = useSharedValue(-20);
 
@@ -96,29 +100,87 @@ export default function HomeScreen() {
     };
   });
 
-  // Google Drive Folder IDs - Replace with your actual folder IDs
-  // To find your folder ID: Open the folder in Google Drive, the ID is in the URL
-  // Example: https://drive.google.com/drive/folders/1ABC123xyz789 -> ID is "1ABC123xyz789"
+
   const driveFolderIds = {
-    1: 'YOUR_FOLDER_ID_SEMESTER_1',  // Replace with Semester 1 folder ID
-    2: 'YOUR_FOLDER_ID_SEMESTER_2',  // Replace with Semester 2 folder ID
-    3: 'YOUR_FOLDER_ID_SEMESTER_3',  // Replace with Semester 3 folder ID
-    4: 'YOUR_FOLDER_ID_SEMESTER_4',  // Replace with Semester 4 folder ID
-    5: 'YOUR_FOLDER_ID_SEMESTER_5',  // Replace with Semester 5 folder ID
-    6: 'YOUR_FOLDER_ID_SEMESTER_6',  // Replace with Semester 6 folder ID
-    7: 'YOUR_FOLDER_ID_SEMESTER_7',  // Replace with Semester 7 folder ID
-    8: 'YOUR_FOLDER_ID_SEMESTER_8',  // Replace with Semester 8 folder ID
+    'CSE': {
+      1: '1U4uT6K2v1ptJmbK40S_fN-GE0Fykl_fW',  
+      2: 'YOUR_FOLDER_ID_CSE_SEMESTER_2',
+      3: 'YOUR_FOLDER_ID_CSE_SEMESTER_3',
+      4: 'YOUR_FOLDER_ID_CSE_SEMESTER_4',
+      5: 'YOUR_FOLDER_ID_CSE_SEMESTER_5',
+      6: 'YOUR_FOLDER_ID_CSE_SEMESTER_6',
+      7: 'YOUR_FOLDER_ID_CSE_SEMESTER_7',
+      8: 'YOUR_FOLDER_ID_CSE_SEMESTER_8',
+    },
+    'ISE': {
+      1: 'YOUR_FOLDER_ID_ISE_SEMESTER_1',
+      2: 'YOUR_FOLDER_ID_ISE_SEMESTER_2',
+      3: 'YOUR_FOLDER_ID_ISE_SEMESTER_3',
+      4: 'YOUR_FOLDER_ID_ISE_SEMESTER_4',
+      5: 'YOUR_FOLDER_ID_ISE_SEMESTER_5',
+      6: 'YOUR_FOLDER_ID_ISE_SEMESTER_6',
+      7: 'YOUR_FOLDER_ID_ISE_SEMESTER_7',
+      8: 'YOUR_FOLDER_ID_ISE_SEMESTER_8',
+    },
+    'AI & ML': {
+      1: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_1',
+      2: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_2',
+      3: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_3',
+      4: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_4',
+      5: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_5',
+      6: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_6',
+      7: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_7',
+      8: 'YOUR_FOLDER_ID_AI_ML_SEMESTER_8',
+    },
+  };
+
+  
+  const extractFolderId = (urlOrId) => {
+    if (!urlOrId) return null;
+   
+    if (!urlOrId.startsWith('http')) {
+      return urlOrId;
+    }
+    
+    const match = urlOrId.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : urlOrId;
   };
 
   const openGoogleDrive = async (semester) => {
+    if (!selectedCourse) {
+      Alert.alert(
+        'Select Course First',
+        'Please select a course from the Course tab first.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Go to Courses',
+            onPress: () => navigation.navigate('Course'),
+          },
+        ]
+      );
+      return;
+    }
+
     try {
-      // Get the folder ID for this semester
-      const folderId = driveFolderIds[semester];
+      // Get the folder ID for this course and semester
+      const courseFolders = driveFolderIds[selectedCourse];
+      if (!courseFolders) {
+        Alert.alert(
+          'Error',
+          `No folders configured for ${selectedCourse}`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      const folderIdOrUrl = courseFolders[semester];
+      const folderId = extractFolderId(folderIdOrUrl);
       
       if (!folderId || folderId.startsWith('YOUR_FOLDER_ID')) {
         Alert.alert(
           'Configuration Needed',
-          `Please configure the Google Drive folder ID for Semester ${semester} in HomeScreen.jsx`,
+          `Please configure the Google Drive folder ID for ${selectedCourse} Semester ${semester} in HomeScreen.jsx`,
           [{ text: 'OK' }]
         );
         return;
@@ -161,11 +223,45 @@ export default function HomeScreen() {
     );
   };
 
+  // Show message if no course is selected
+  if (!selectedCourse) {
+    return (
+      <View style={styles.container}>
+        <Animated.View style={[styles.header, headerAnimatedStyle]}>
+          <Text style={styles.headerTitle}>Select Course First</Text>
+          <Text style={styles.headerSubtitle}>Choose a course to view semesters</Text>
+        </Animated.View>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="school-outline" size={80} color="#9ca3af" />
+          <Text style={styles.emptyText}>No Course Selected</Text>
+          <Text style={styles.emptySubtext}>
+            Please go to the Course tab and select your branch
+          </Text>
+          <TouchableOpacity
+            style={styles.goToCourseButton}
+            onPress={() => navigation.navigate('Course')}
+          >
+            <LinearGradient
+              colors={['#6366f1', '#8b5cf6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>Go to Courses</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.header, headerAnimatedStyle]}>
         <Text style={styles.headerTitle}>Select Semester</Text>
-        <Text style={styles.headerSubtitle}>Access your study materials</Text>
+        <Text style={styles.headerSubtitle}>
+          {selectedCourse} - Access your study materials
+        </Text>
       </Animated.View>
 
       <ScrollView
@@ -271,6 +367,41 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
     marginLeft: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  goToCourseButton: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
   },
 });
 
