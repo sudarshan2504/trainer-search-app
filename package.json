@@ -1,0 +1,29 @@
+{
+  "name": "trainer-search-app",
+  "version": "1.0.0",
+  "description": "npm",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sudarshan2504/trainer-search-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sudarshan2504/trainer-search-app/issues"
+  },
+  "homepage": "https://github.com/sudarshan2504/trainer-search-app#readme",
+  "dependencies": {
+    "expo": "^54.0.25",
+    "react": "latest",
+    "react-native": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
+}
